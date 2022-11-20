@@ -1,0 +1,32 @@
+{
+  "categories": [
+    {
+      "categoryName": "Action",
+      "id": 22
+    },
+    {
+      "categoryName": "SFI",
+      "id": 23
+    },
+    {
+      "categoryName": "Comedy",
+      "id": 26
+    },
+    {
+      "categoryName": "Drama",
+      "id": 27
+    },
+    {
+      "categoryName": "Fantasy",
+      "id": 29
+    },
+    {
+      "categoryName": "Fantasy",
+      "id": 30
+    },
+    {
+      "categoryName": "Horror",
+      "id": 31
+    }
+  ]
+}
