@@ -43,6 +43,15 @@ function CategoryRequest() {
       body: JSON.stringify(input),
     });
   };
+  this.addCategory = function (url, input) {
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    });
+  };
 }
 
 const categoryRequest = new CategoryRequest();
@@ -122,13 +131,7 @@ buttonElement.addEventListener("click", function () {
     const categoryValue = inputElement.value;
     const categoryInput = new Category(categoryValue);
 
-    fetch("http://localhost:3000/categories", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(categoryInput),
-    }).then(function (data) {
+    categoryRequest.addCategory(url, categoryInput).then(function (data) {
       tbody.renderTable();
       console.log("added");
     });
