@@ -1,3 +1,5 @@
+const url = "http://localhost:3000/categories/";
+
 const body = document.body;
 function Element(element, id, parent, text = "") {
   this.element = element;
@@ -14,6 +16,36 @@ Element.prototype.createElement = function () {
   this.parent.appendChild(element);
   return element;
 };
+
+function CategoryRequest() {
+  this.getCategory = function (url, id = "") {
+    return fetch(url + id)
+      .then(function (data) {
+        return data.json();
+      })
+      .then(function (categories) {
+        return categories;
+      });
+  };
+
+  this.delCategory = function (url, id) {
+    return fetch(url + id, {
+      method: "DELETE",
+    });
+  };
+
+  this.editCategory = function (url, id, input) {
+    return fetch(url + id, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    });
+  };
+}
+
+const categoryRequest = new CategoryRequest();
 
 const mainWrapper = new Element("div", "main-wrapper", body);
 const mainWrapperElement = mainWrapper.createElement();
@@ -104,47 +136,41 @@ buttonElement.addEventListener("click", function () {
 });
 
 Element.prototype.renderTable = function () {
-  fetch("http://localhost:3000/categories", {
-    method: "GET",
-  })
-    .then(function (data) {
-      return data.json();
-    })
-    .then(function (categories) {
-      tbodyElement.innerHTML = "";
-      for (let category of categories) {
-        const trBody = document.createElement("tr");
-        tbodyElement.appendChild(trBody);
-        const categoryId = document.createElement("td");
-        categoryId.textContent = category.id;
-        const categoryName = document.createElement("td");
-        categoryName.innerText = category.categoryName;
-        const tdDelete = document.createElement("td");
-        const deleteTdLink = document.createElement("a");
-        deleteTdLink.href = "#";
-        deleteTdLink.textContent = "Delete";
-        deleteTdLink.classList.add("delete");
-        deleteTdLink.setAttribute("data-id", category.id);
+  categoryRequest.getCategory(url).then(function (categories) {
+    tbodyElement.innerHTML = "";
+    for (let category of categories) {
+      const trBody = document.createElement("tr");
+      tbodyElement.appendChild(trBody);
+      const categoryId = document.createElement("td");
+      categoryId.textContent = category.id;
+      const categoryName = document.createElement("td");
+      categoryName.innerText = category.categoryName;
+      const tdDelete = document.createElement("td");
+      const deleteTdLink = document.createElement("a");
+      deleteTdLink.href = "#";
+      deleteTdLink.textContent = "Delete";
+      deleteTdLink.classList.add("delete");
+      deleteTdLink.setAttribute("data-id", category.id);
 
-        const tdEdit = document.createElement("td");
-        const editTdLink = document.createElement("a");
-        editTdLink.classList.add("edit");
-        editTdLink.setAttribute("data-id", category.id);
-        editTdLink.href = "#";
-        editTdLink.textContent = "Edit";
-        tdEdit.appendChild(editTdLink);
-        tdDelete.appendChild(deleteTdLink);
+      const tdEdit = document.createElement("td");
+      const editTdLink = document.createElement("a");
+      editTdLink.classList.add("edit");
+      editTdLink.setAttribute("data-id", category.id);
+      editTdLink.href = "#";
+      editTdLink.textContent = "Edit";
+      tdEdit.appendChild(editTdLink);
+      tdDelete.appendChild(deleteTdLink);
 
-        trBody.appendChild(categoryId);
-        trBody.appendChild(categoryName);
-        trBody.appendChild(tdDelete);
-        trBody.appendChild(tdEdit);
-        inputElement.value = "";
-      }
+      trBody.appendChild(categoryId);
+      trBody.appendChild(categoryName);
+      trBody.appendChild(tdDelete);
+      trBody.appendChild(tdEdit);
+      inputElement.value = "";
+    }
 
-      tbody.delElement();
-      tbody.editElement();
-    });
+    tbody.delElement();
+    tbody.editElement();
+  });
 };
 
 tbody.renderTable();
@@ -157,9 +183,7 @@ Element.prototype.delElement = function () {
       console.log("click");
       const id = event.target.getAttribute("data-id");
       console.log(id);
-      fetch("http://localhost:3000/categories/" + id, {
-        method: "DELETE",
-      }).then(function () {
+      categoryRequest.delCategory(url, id).then(function () {
         tbody.renderTable();
       });
     });
@@ -173,39 +197,29 @@ Element.prototype.editElement = function () {
       event.preventDefault();
       console.log("edit");
       const id = event.target.getAttribute("data-id");
-      fetch("http://localhost:3000/categories/" + id, {
-        method: "GET",
-      })
-        .then(function (data) {
-          return data.json();
-        })
-        .then(function (category) {
-          inputElement.value = category.categoryName;
+      categoryRequest.getCategory(url, id).then(function (category) {
+        inputElement.value = category.categoryName;
 
-          buttonElement.classList.add("display-none");
-          editButtonElement.classList.remove("display-none");
-          editButtonElement.setAttribute("data-id", category.id);
+        buttonElement.classList.add("display-none");
+        editButtonElement.classList.remove("display-none");
+        editButtonElement.setAttribute("data-id", category.id);
 
-          editButtonElement.addEventListener("click", function (event) {
-            const id = event.target.getAttribute("data-id");
-            event.preventDefault();
-            console.log("Edit Button");
-            const categoryValue = inputElement.value;
-            const categoryInput = new Category(categoryValue);
+        editButtonElement.addEventListener("click", function (event) {
+          const id = event.target.getAttribute("data-id");
+          event.preventDefault();
+          console.log("Edit Button");
+          const categoryValue = inputElement.value;
+          const categoryInput = new Category(categoryValue);
 
-            fetch("http://localhost:3000/categories/" + id, {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(categoryInput),
-            }).then(function () {
+          categoryRequest
+            .editCategory(url, id, categoryInput)
+            .then(function () {
               buttonElement.classList.remove("display-none");
               editButtonElement.classList.add("display-none");
               tbody.renderTable();
             });
-          });
         });
+      });
     });
   }
 };
